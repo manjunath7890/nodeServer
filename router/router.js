@@ -82,7 +82,7 @@ router.post("/postdata", async (req, res) => {
 
 router.post("/signup", async (req, res) => {
 
-  const { userName, role, email, contact, accessToken, password } = req.body;
+  const { userName, role, email, contact, accessToken, dealerToken, password } = req.body;
 
   try {
     const newUser = await User.findOne({ email });
@@ -92,7 +92,7 @@ router.post("/signup", async (req, res) => {
       return res.status(401).send({ message: "user already exist" });
     }
 
-    const user = new User({ userName, role, contact, email, accessToken, password });
+    const user = new User({ userName, role, contact, email, accessToken, dealerToken, password });
 
     await user.save();
 
@@ -185,6 +185,29 @@ router.get('/users', (req, res) => {
     });
 });
 
+router.get('/dealer/users', (req, res) => {
+
+  const { dealerToken } = req.query; 
+  if (!dealerToken) {
+    return res.status(400).json({ error: 'dealerToken not provided' });
+  }
+
+
+  User.find({ dealerToken })
+    .then((data) => {
+      if (data && data.length > 0) {
+        res.json(data); 
+
+      } else {
+        res.status(404).json({ error: 'No users found for the provided dealerToken' });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+});
+
+
 router.get('/fleet/vehicles', (req, res) => {
 
   const { accessToken } = req.query; 
@@ -208,6 +231,29 @@ router.get('/fleet/vehicles', (req, res) => {
     });
 });
 
+router.get('/dealer/vehicles', (req, res) => {
+
+  const { dealerToken } = req.query; 
+  if (!dealerToken) {
+    console.log(dealerToken)
+    return res.status(400).json({ error: 'dealerToken not provided' });
+  }
+
+
+  Vehicle.find({ dealerToken })
+    .then((data) => {
+      if (data && data.length > 0) {
+        res.json(data); 
+
+      } else {
+        res.status(404).json({ error: 'No vehicles found for the provided dealerToken' });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+});
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -216,7 +262,7 @@ router.post("/login", async (req, res) => {
 
     if (user) {
 
-      res.status(200).json({ message: "user logged successfully", role: user.role , userName: user.userName, accessToken: user.accessToken});
+      res.status(200).json({ message: "user logged successfully", role: user.role , accessToken: user.accessToken, dealerToken: user.dealerToken});
     } else {
  
 
