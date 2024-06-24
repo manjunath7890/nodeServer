@@ -481,18 +481,32 @@ router.post('/put/vehicleparts', async (req, res) => {
 router.get('/get/vehicleparts/:chassisnumber', async (req, res) => {
   const { chassisnumber } = req.params;
   try {
-
-    const existingVehicle = await VehicleParts.findOne({ chassisNumber: chassisnumber});
-    if (existingVehicle) {
-      res.status(200).json(existingVehicle);
-    } else {
-      res.status(404).json({ message: 'Vehicle not found' });
+    // Find the vehicle by chassis number
+    const existingVehicle = await VehicleParts.findOne({ chassisNumber: chassisnumber });
+    if (!existingVehicle) {
+      return res.status(404).json({ message: 'Vehicle not found' });
     }
+
+    // Group parts by partId and get the latest part for each partId
+    const partsMap = new Map();
+    existingVehicle.parts.forEach(part => {
+      const existingPart = partsMap.get(part.partId);
+      if (!existingPart || new Date(part.dateInstalled) > new Date(existingPart.dateInstalled)) {
+        partsMap.set(part.partId, part);
+      }
+    });
+
+    // Get the latest parts as an array
+    const latestParts = Array.from(partsMap.values());
+
+    // Return the vehicle details with the filtered parts
+    res.status(200).json({ ...existingVehicle._doc, parts: latestParts });
   } catch (error) {
     console.error('Error fetching vehicle data:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 router.delete('/delete/vehicleparts/:chassisNumber/:partId', async (req, res) => {
   try {
@@ -530,6 +544,29 @@ router.put('/edit/vehicleparts/:chassisNumber/:partId', async (req, res) => {
     await vehicle.save();
 
     res.send(vehicle);
+  } catch (error) {
+    res.status(500).send(error.message);
+  }
+});
+
+router.get('/replace/vehicleparts/:chassisNumber/:partId', async (req, res) => {
+  try {
+    const { chassisNumber, partId } = req.params;
+
+    // Find the vehicle by chassis number
+    const vehicle = await VehicleParts.findOne({ chassisNumber });
+    if (!vehicle) {
+      return res.status(404).send('Vehicle not found');
+    }
+
+    // Find all parts with the specified partId
+    const partsWithSameId = vehicle.parts.filter(part => part.partId === partId);
+    if (partsWithSameId.length === 0) {
+      return res.status(404).send('No parts found with the specified partId');
+    }
+
+    // Send the filtered parts in the response
+    res.send(partsWithSameId);
   } catch (error) {
     res.status(500).send(error.message);
   }
