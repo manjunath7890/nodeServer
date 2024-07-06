@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
       chassiNo: 'string',
       batteryId: 'string',
       dealerToken: 'string',
+      financeToken: 'string',
       date: {
         type: Date,
         default: () => new Date().toISOString().slice(0, 10)

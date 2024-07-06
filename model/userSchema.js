@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
       contact: 'number',
       accessToken: 'string',
       dealerToken: 'string',
+      financeToken: 'string',
       password: 'string',
       date: {
         type: Date,

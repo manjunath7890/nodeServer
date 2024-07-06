@@ -82,7 +82,7 @@ router.post("/postdata", async (req, res) => {
 
 router.post("/signup", async (req, res) => {
 
-  const { userName, role, email, contact, accessToken, dealerToken, password } = req.body;
+  const { userName, role, email, contact, accessToken, dealerToken, financeToken, password } = req.body;
 
   try {
     const newUser = await User.findOne({ email });
@@ -92,7 +92,7 @@ router.post("/signup", async (req, res) => {
       return res.status(401).send({ message: "user already exist" });
     }
 
-    const user = new User({ userName, role, contact, email, accessToken, dealerToken, password });
+    const user = new User({ userName, role, contact, email, accessToken, dealerToken, financeToken, password });
 
     await user.save();
 
@@ -136,7 +136,7 @@ router.get('/analytics/data', async(req, res) => {
 });
 
   router.post("/register", async (req, res) => {
-  const { vehicleNo, vehicleId, name, motorNo, chassiNo, batteryId, accessToken } = req.body;
+  const { vehicleNo, vehicleId, name, motorNo, chassiNo, batteryId, accessToken, financeToken } = req.body;
 
   try {
     const newVehicle = await Vehicle.findOne({ vehicleId });
@@ -146,7 +146,7 @@ router.get('/analytics/data', async(req, res) => {
       return res.status(401).send({ message: "vehicle already registered" });
     }
 
-    const user = new Vehicle({ vehicleNo, vehicleId, name, motorNo, chassiNo, batteryId, accessToken });
+    const user = new Vehicle({ vehicleNo, vehicleId, name, motorNo, chassiNo, batteryId, accessToken, financeToken });
     await user.save();
 
     return res.status(200).send({ message: "vechile registered successfully!" });
@@ -212,7 +212,6 @@ router.get('/fleet/vehicles', (req, res) => {
 
   const { accessToken } = req.query; 
   if (!accessToken) {
-    console.log(accessToken)
     return res.status(400).json({ error: 'accessToken not provided' });
   }
 
@@ -235,7 +234,6 @@ router.get('/dealer/vehicles', (req, res) => {
 
   const { dealerToken } = req.query; 
   if (!dealerToken) {
-    console.log(dealerToken)
     return res.status(400).json({ error: 'dealerToken not provided' });
   }
 
@@ -254,6 +252,28 @@ router.get('/dealer/vehicles', (req, res) => {
     });
 });
 
+router.get('/financer/vehicles', (req, res) => {
+
+  const { financeToken } = req.query; 
+  if (!financeToken) {
+    return res.status(400).json({ error: 'financeToken not provided' });
+  }
+
+
+  Vehicle.find({ financeToken })
+    .then((data) => {
+      if (data && data.length > 0) {
+        res.json(data); 
+
+      } else {
+        res.status(404).json({ error: 'No vehicles found for the provided financeToken' });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json({ error: err.message });
+    });
+});
+
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -262,7 +282,15 @@ router.post("/login", async (req, res) => {
 
     if (user) {
 
-      res.status(200).json({ message: "user logged successfully", role: user.role , accessToken: user.accessToken, dealerToken: user.dealerToken});
+      res
+        .status(200)
+        .json({
+          message: "user logged successfully",
+          role: user.role,
+          accessToken: user.accessToken,
+          dealerToken: user.dealerToken,
+          financeToken: user.financeToken,
+        });
     } else {
  
 
@@ -337,17 +365,20 @@ router.post('/api/reset-password', async (req, res) => {
 });
 
 router.post("/postinput", async (req, res) => {
-
-  const { var1, var2 } = req.body;
+  const { var1, var2, var3 } = req.body;
 
   try {
-    const inputdata = await SwitchData.findOne({ var2: var2 });
+    let inputdata = await SwitchData.findOne({ var2: var2 });
 
     if (!inputdata) {
-      return res.status(404).json({ message: "Document not found" });
+      // Create a new document if none is found
+      inputdata = new SwitchData({ var1, var2, var3 });
+      await inputdata.save();
+      return res.status(201).json({ message: "Document created successfully" });
     }
-    inputdata.var1 = var1;
 
+    inputdata.var1 = var1;
+    inputdata.var3 = var3;
     await inputdata.save();
     res.status(200).json({ message: "Document updated successfully" });
   } catch (err) {
@@ -355,6 +386,7 @@ router.post("/postinput", async (req, res) => {
     res.status(500).json({ error: "An error occurred" });
   }
 });
+
 
 router.get("/api/data", async (req, res) => {
   const { fileName, userName } = req.query;
@@ -375,7 +407,7 @@ router.get("/getinput", (req, res) => {
     .sort("-timestamp")
     .then((data) => {
       if (data) {
-        res.json(data.var1);
+        res.json(data);
       } else {
         res.status(404).json({ error: "No data found" });
       }
