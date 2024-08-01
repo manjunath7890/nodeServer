@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const inputSchema = new mongoose.Schema({
   var1: Boolean,
   var2: String,
-  var3: Boolean,
+  var3: String,
   timestamp: {
     type: Date,
     default: Date.now,
