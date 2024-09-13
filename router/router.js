@@ -8,6 +8,7 @@ expressWs(router);
 
 router.use(cors());
 
+
 require("../db doc/atlas_conn");
 const User = require("../model/userSchema");
 const Vehicle = require("../model/registerSchema");
@@ -15,6 +16,8 @@ const Data = require("../model/dataSchema");
 const SwitchData = require("../model/inputSchema");
 const Analytics = require("../model/analyticsSchema");
 const VehicleParts = require("../model/vehicleSchema");
+
+const client = require("../db doc/mqtt_conn");
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // Use your email service provider
@@ -28,6 +31,72 @@ let otps = {};
 
 router.get("/", (req, res) => {
   res.send("hello router");
+});
+
+client.on("message", async (topic, message) => {
+  let messageString = message.toString();
+  messageString = messageString.replace(/\\+/g, "");
+  let messageObject;
+  
+  try {
+    messageObject = JSON.parse(messageString);
+  } catch (error) {
+    console.error("Error parsing JSON:", error);
+    return;
+  }
+
+  if (topic === "vehicle_vcu_data") {
+    try {
+      const data = new Data(messageObject);
+      await data.save();
+      console.log("Data saved");
+    } catch (error) {
+      console.error("Error saving data:", error);
+    }
+  }
+
+  if (topic === "vehicle_vcu_switch_request") {
+    const responseTopic = "vehicle_vcu_switch_response";
+    const vehicleId = messageObject.var2;
+    // console.log(vehicleId);
+    
+    SwitchData.findOne({ var2: vehicleId })
+      .sort("-timestamp")
+      .then((data) => {
+        if (data) {
+          // Convert the Mongoose model instance to a plain object and then to a JSON string
+          const dataToPublish = JSON.stringify(data.var1);
+          console.log(data.var1)
+          client.publish(responseTopic, dataToPublish, { qos: 1 }, (error) => {
+            if (error) {
+              console.error("Failed to publish message:", error);
+            } else {
+              console.log(`Message published to topic "${responseTopic}"`);
+            }
+          });
+        } else {
+          console.error("No data found in the database");
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch message from database:", err);
+      });
+  }
+});
+
+
+
+
+client.on('error', (err) => {
+  console.error('MQTT connection error:', err);
+});
+
+client.on('reconnect', () => {
+  console.log('Reconnecting to MQTT broker...');
+});
+
+client.on('close', () => {
+  console.log('MQTT connection closed');
 });
 
 router.get('/map-api/token', async (req, res) => {
