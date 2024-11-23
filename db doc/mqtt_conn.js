@@ -9,7 +9,7 @@ const mqttPassword = 'public'; // Replace with your MQTT password
 
 // Options for MQTT connection
 const mqttOptions = {
-  clientId: 'atlener_mqtt_client', // Unique client ID
+  clientId: 'atlener_solutions_mqtt_client', // Unique client ID
   clean: true, // Keep session clean
   connectTimeout: 4000, // Time before connection times out
   reconnectPeriod: 1000, // Reconnect period
