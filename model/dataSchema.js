@@ -84,12 +84,14 @@ const dataSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     get: function (v) {
-      const offset = 5.5 * 60 * 60 * 1000; // Offset for IST in milliseconds
-      const localTime = new Date(v.getTime() + offset);
-      return localTime;
-    },
+      const offset = 5.5 * 60 * 60 * 1000;
+      const istTime = new Date(v.getTime() + offset);
+      return istTime;
+    },    
   },  
 });
+
+dataSchema.set('toJSON', { getters: true });
 
 const Data = mongoose.model('Data', dataSchema);
 module.exports = Data;

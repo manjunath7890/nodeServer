@@ -17,6 +17,23 @@ const SwitchData = require("../model/inputSchema");
 const Analytics = require("../model/analyticsSchema");
 const VehicleParts = require("../model/vehicleSchema");
 
+// dataSchema.set('toJSON', { getters: true });
+
+// (async () => {
+//   try {
+//     const doc = await Data.findOne({ user: 'aspl_bench' });
+//     if (doc) {
+//       console.log('Document:', doc);
+//       console.log('IST Timestamp:', doc.timestamp); // Getter should trigger
+//       console.log('IST Timestamp (toJSON):', doc.toJSON().timestamp);
+//     } else {
+//       console.log('No document found.');
+//     }
+//   } catch (error) {
+//     console.error('Error:', error);
+//   }
+// })();
+
 const client = require("../db doc/mqtt_conn");
 
 const transporter = nodemailer.createTransport({
