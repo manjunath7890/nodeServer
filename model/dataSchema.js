@@ -83,10 +83,12 @@ const dataSchema = new mongoose.Schema({
   timestamp: {
     type: Date,
     default: Date.now,
-    get: function(v) {
-      return new Date(v).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+    get: function (v) {
+      const offset = 5.5 * 60 * 60 * 1000; // Offset for IST in milliseconds
+      const localTime = new Date(v.getTime() + offset);
+      return localTime.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
     },
-  },
+  },  
 });
 
 const Data = mongoose.model('Data', dataSchema);
