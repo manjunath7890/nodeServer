@@ -22,21 +22,21 @@ const mqttOptions = {
 const client = mqtt.connect(mqttBrokerUrl, mqttOptions);
 
 // MQTT connection events
-client.on('connect', () => {
-  console.log('Connected to MQTT broker');
+// client.on('connect', () => {
+//   console.log('Connected to MQTT broker');
 
-  // Subscribe to the topics
-  const topics = ['vehicle_vcu_data', 'vehicle_vcu_switch_request'];
+//   // Subscribe to the topics
+//   const topics = ['vehicleee_vcu_data', 'vehicleee_vcu_switch_request'];
 
-  topics.forEach((topic) => {
-    client.subscribe(topic, (err) => {
-      if (!err) {
-        console.log(`Subscribed to ${topic}`);
-      } else {
-        console.error(`Subscription error for topic ${topic}:`, err);
-      }
-    });
-  });
-});
+//   topics.forEach((topic) => {
+//     client.subscribe(topic, (err) => {
+//       if (!err) {
+//         console.log(`Subscribed to ${topic}`);
+//       } else {
+//         console.error(`Subscription error for topic ${topic}:`, err);
+//       }
+//     });
+//   });
+// });
 
 module.exports = client;

@@ -86,7 +86,7 @@ const dataSchema = new mongoose.Schema({
     get: function (v) {
       const offset = 5.5 * 60 * 60 * 1000; // Offset for IST in milliseconds
       const localTime = new Date(v.getTime() + offset);
-      return localTime.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
+      return localTime;
     },
   },  
 });
